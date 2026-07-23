@@ -1,0 +1,5 @@
+# GitScreen CI/CD Pipeline Configuration for CyberCatch
+name: CyberCatch
+install: npm install
+build: ""
+start: node server/server.js
