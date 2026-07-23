@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberCatch // Волк Ловит Яйца</title>
+    <!-- Подключаем шрифт из Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cyber-container">
+        <!-- Декоративные угловые элементы интерфейса -->
+        <div class="hud-corner top-left"></div>
+        <div class="hud-corner top-right"></div>
+        <div class="hud-corner bottom-left"></div>
+        <div class="hud-corner bottom-right"></div>
+
+        <!-- Верхняя панель HUD -->
+        <header class="hud-header">
+            <div class="hud-title-container">
+                <span class="hud-glitch-text" data-text="CYBER_CATCH_v1.0">CYBER_CATCH_v1.0</span>
+                <span class="hud-status"><span class="pulse-dot"></span> ОНЛАЙН</span>
+                <div id="hud-season" style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--neon-yellow); margin-top: 2px;">СЕЗОН 1 // ОСТАЛОСЬ ДНЕЙ: --</div>
+            </div>
+            
+            <div class="hud-score-board">
+                <div class="score-label">СОБРАНО ДАННЫХ</div>
+                <div id="score" class="score-value">0000</div>
+            </div>
+            <!-- Текущий стрик пойманных яиц -->
+            <div class="hud-streak-board" style="display: none; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 100px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">ТЕКУЩИЙ СТРИК</div>
+                <div style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: bold; text-shadow: 0 0 5px rgba(0, 240, 255, 0.5); margin-top: 2px;"><span id="hud-current-streak">0</span></div>
+            </div>
+
+            <!-- Меню-стат 1: сессии и яйца -->
+            <div id="hud-menu-eggs-sessions" style="display: none; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 100px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">АКТИВНОСТЬ</div>
+                <div style="font-size: 0.85rem; color: var(--neon-cyan); font-weight: bold; margin-top: 2px;">
+                    <span id="hud-stat-games">0</span> СЕСС / <span id="hud-stat-eggs">0</span> ЯД
+                </div>
+            </div>
+
+            <div class="hud-credits-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 100px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">КРЕДИТЫ CC</div>
+                <div style="font-size: 1.1rem; color: var(--neon-yellow); font-weight: bold; text-shadow: 0 0 5px rgba(255, 222, 0, 0.5); margin-top: 2px;"><span id="hud-cyber-credits">0</span> CC</div>
+            </div>
+
+            <div class="hud-upgrade-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 120px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">ДО УЛУЧШЕНИЯ</div>
+                <div style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: bold; text-shadow: 0 0 5px rgba(0, 240, 255, 0.5); margin-top: 2px;"><span id="hud-next-upgrade-val">15</span> ОЧК.</div>
+            </div>
+
+            <!-- Меню-стат 2: рекорд и стрик -->
+            <div id="hud-menu-pb-streak" style="display: none; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 100px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">ДОСТИЖЕНИЯ</div>
+                <div style="font-size: 0.85rem; color: var(--neon-green); font-weight: bold; margin-top: 2px;">
+                    РЕК: <span id="hud-stat-pb">0</span> / СТР: <span id="hud-stat-streak">0</span> дн
+                </div>
+            </div>
+
+            <div class="hud-lives-board">
+                <div class="lives-label">ЦЕЛОСТНОСТЬ СИСТЕМЫ</div>
+                <div class="lives-indicators" id="lives-container">
+                    <div class="life-node active" data-index="0"></div>
+                    <div class="life-node active" data-index="1"></div>
+                    <div class="life-node active" data-index="2"></div>
+                </div>
+            </div>
+
+            <!-- Меню-стат 3: имя оператора -->
+            <div id="hud-menu-operator" style="display: none; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-mono); min-width: 120px;">
+                <div class="score-label" style="font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase;">ИДЕНТИФИКАТОР</div>
+                <div style="font-size: 0.85rem; color: var(--neon-pink); font-weight: bold; text-shadow: 0 0 5px rgba(255, 0, 127, 0.5); margin-top: 2px; text-transform: uppercase; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><span id="hud-stat-operator-name">GUEST</span></div>
+            </div>
+        </header>
+
+        <!-- Основной экран игры -->
+        <main class="game-viewport">
+            <!-- Эффект CRT/сканирующих линий поверх игры -->
+            <div class="crt-overlay"></div>
+            <div class="scanline"></div>
+            
+            <!-- Игровой Canvas -->
+            <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+            <!-- Виджет лидерборда, показываемый во время игры -->
+            <div id="game-leaderboard-widget" class="menu-leaderboard-widget">
+                <div class="mode-selector">
+                    <button class="tab-mode-btn active" data-mode="standard">STANDARD</button>
+                    <button class="tab-mode-btn" data-mode="daily">DAILY</button>
+                </div>
+                <div class="period-selector">
+                    <button class="tab-period-btn active" data-period="today">TODAY</button>
+                    <button class="tab-period-btn" data-period="week">WEEK</button>
+                    <button class="tab-period-btn" data-period="month">MONTH</button>
+                    <button class="tab-period-btn" data-period="all">ALL</button>
+                </div>
+                <table class="menu-leaderboard-table">
+                    <tbody id="game-leaderboard-body">
+                        <tr><td colspan="3" style="text-align: center; padding: 10px; color: var(--text-muted);">Загрузка...</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="menu-leaderboard-pb-row">
+                            <td colspan="2">PERSONAL BEST</td>
+                            <td id="game-side-personal-best">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Панель управления воспроизведением реплея -->
+            <div id="replay-controls" class="replay-controls-panel" style="display: none;">
+                <span id="replay-time-remaining" class="replay-time-remaining">00:00</span>
+                <div class="replay-speed-group">
+                    <button class="replay-speed-btn" data-speed="0.5">0.5x</button>
+                    <button class="replay-speed-btn active" data-speed="1">1x</button>
+                    <button class="replay-speed-btn" data-speed="2">2x</button>
+                    <button class="replay-speed-btn" data-speed="4">4x</button>
+                </div>
+                <button id="replay-to-game-btn" class="replay-to-game-btn">К ИГРЕ</button>
+            </div>
+
+            <!-- Информационная панель реплея: оператор и его улучшения -->
+            <div id="replay-info-panel" class="replay-info-panel" style="display: none;">
+                <div class="replay-info-title">[ ЗАПИСЬ ОПЕРАТОРА ]</div>
+                <div id="replay-info-name" class="replay-info-name">ANON</div>
+                <div class="replay-info-upgrades">
+                    <div class="replay-upgrade-row"><span>ДВИГАТЕЛЬ</span><span id="replay-upg-speed">1/5</span></div>
+                    <div class="replay-upgrade-row"><span>ПРИЕМНИК</span><span id="replay-upg-hitbox">1/5</span></div>
+                    <div class="replay-upgrade-row"><span>ЯКОРЬ</span><span id="replay-upg-slow">1/5</span></div>
+                    <div class="replay-upgrade-row"><span>МАТРИЦА</span><span id="replay-upg-shield">1/5</span></div>
+                </div>
+            </div>
+
+            <!-- Отслеживание прогресса ачивок -->
+            <div id="achievement-tracker" class="achievement-tracker-panel" style="display: none;">
+                <div class="ach-tracker-title">[ ПРОГРЕСС ДОСТИЖЕНИЯ ]</div>
+                <div id="ach-tracker-name" class="ach-tracker-name">...</div>
+                <div class="ach-tracker-progress-container">
+                    <div id="ach-tracker-bar" class="ach-tracker-bar" style="width: 0%"></div>
+                </div>
+                <div id="ach-tracker-ratio" class="ach-tracker-ratio">0/0</div>
+            </div>
+
+            <!-- Отслеживание прогресса квеста дня -->
+            <div id="quest-tracker" class="quest-tracker-panel" style="display: none;">
+                <div class="ach-tracker-title" style="color: var(--neon-yellow);">[ КОНТРАКТ ДНЯ ]</div>
+                <div id="quest-tracker-name" class="ach-tracker-name" style="font-size: 0.75rem;">...</div>
+                <div class="ach-tracker-progress-container" style="background: rgba(255,255,255,0.05); height: 6px; border: 1px solid rgba(255, 222, 0, 0.15); margin-bottom: 4px; overflow: hidden; position: relative;">
+                    <div id="quest-tracker-bar" class="ach-tracker-bar" style="width: 0%; background: var(--neon-yellow); height: 100%; box-shadow: 0 0 8px var(--neon-yellow);"></div>
+                </div>
+                <div id="quest-tracker-ratio" class="ach-tracker-ratio" style="font-size: 0.7rem; color: var(--text-muted); text-align: right;">0/0</div>
+            </div>
+
+            <!-- Наэкранное управление для мобильных устройств -->
+            <button id="mobile-left-btn" class="mobile-dir-btn left-dir-btn">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </button>
+            <button id="mobile-right-btn" class="mobile-dir-btn right-dir-btn">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                </svg>
+            </button>
+
+            <!-- Оверлей для горизонтального режима (только на мобильных) -->
+            <div class="orientation-warning">
+                <div class="cyber-card warning-card">
+                    <div class="rotate-phone-icon">
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="var(--neon-cyan)">
+                            <path d="M16 1H8C6.34 1 5 2.34 5 4v16c0 1.66 1.34 3 3 3h8c1.66 0 3-1.34 3-3V4c0-1.66-1.34-3-3-3zm-2 20h-4v-1h4v1zm3-3H7V4h10v14z"/>
+                        </svg>
+                    </div>
+                    <h2 class="glitch" data-text="ROTATE DEVICE">ПЕРЕВЕРНИТЕ УСТРОЙСТВО</h2>
+                    <p class="subtitle">Для запуска игры требуется горизонтальный (альбомный) режим.</p>
+                </div>
+            </div>
+
+            <!-- Голографические логи системы, наложенные поверх Canvas -->
+            <div class="system-logs-overlay">
+                <div class="system-logs">
+                    <div class="log-line">> Инициализация интерфейса... OK</div>
+                    <div class="log-line" id="dynamic-log">> Ожидание подключения оператора...</div>
+                </div>
+            </div>
+
+            <!-- Экраны оверлеев -->
+            <div id="menu-screen" class="overlay-screen active">
+              <div id="menu-card-wrapper" class="menu-card-wrapper">
+                <div class="cyber-card" style="width: 580px; max-width: 95vw;">
+                    <h1 id="menu-title" class="glitch" data-text="CYBER CATCH">CYBER CATCH</h1>
+                    <p id="menu-subtitle" class="subtitle">НЕЙРОСЕТЕВОЙ ПЕРЕХВАТ ДАННЫХ</p>
+                    
+                    <!-- Статистика после игры (скрыта при старте) -->
+                    <div id="menu-stats" class="stats-summary" style="display: none; margin-bottom: 12px;">
+                        <div class="stat-row">
+                            <span>ПЕРЕХВАЧЕНО ЯДЕР:</span>
+                            <span id="final-score" class="neon-text-blue">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>УРОВЕНЬ УГРОЗЫ:</span>
+                            <span id="final-speed" class="neon-text-pink">100%</span>
+                        </div>
+                        <div id="final-cc-row" class="stat-row" style="display: none;">
+                            <span>ЗАРАБОТАНО CC:</span>
+                            <span id="final-cc-earned" class="neon-text-yellow">...</span>
+                        </div>
+                    </div>
+
+                    <!-- Вкладки меню -->
+                    <div class="menu-tabs" style="display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--panel-border); padding-bottom: 8px;">
+                        <button id="menu-tab-game" class="menu-tab-btn active">ИГРА</button>
+                        <button id="menu-tab-achievements" class="menu-tab-btn">ДОСТИЖЕНИЯ</button>
+                        <button id="menu-tab-settings" class="menu-tab-btn">НАСТРОЙКИ</button>
+                    </div>
+
+                    <!-- Содержимое вкладки: ИГРА -->
+                    <div id="tab-content-game" class="menu-tab-content active">
+                        <!-- Выбор игрового режима -->
+                        <div class="game-mode-panel" style="display: flex; gap: 8px; margin-bottom: 12px; border: 1px solid var(--panel-border); padding: 8px; background: rgba(0, 0, 0, 0.45); font-family: var(--font-cyber);">
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 4px;">
+                                <button id="mode-select-standard" class="cyber-btn" style="padding: 6px; font-size: 0.75rem; border-color: var(--neon-cyan); background: rgba(0, 240, 255, 0.1); width: 100%; cursor: pointer;">
+                                    <span class="btn-content" style="color: var(--neon-cyan); font-weight: bold; letter-spacing: 1px;">STANDARD RUN</span>
+                                </button>
+                                <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); text-align: center; text-transform: uppercase;">Бесконечная игра с постепенным ускорением</div>
+                            </div>
+                            <div style="flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 4px;">
+                                <button id="mode-select-daily" class="cyber-btn" style="padding: 6px; font-size: 0.75rem; border-color: rgba(255, 222, 0, 0.3); background: rgba(255, 222, 0, 0.02); width: 100%; cursor: pointer;">
+                                    <span class="btn-content" style="color: var(--text-muted); font-weight: bold; letter-spacing: 1px;">DAILY CHALLENGE</span>
+                                </button>
+                                <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-muted); text-align: center; text-transform: uppercase;">Ежедневное состязание на фиксированном сиде</div>
+                            </div>
+                        </div>
+
+                        <!-- Форма отправки рекорда (скрыта при старте) -->
+                        <div id="score-submit-container" style="display: none; margin-bottom: 12px; border: 1px dashed rgba(0, 240, 255, 0.3); padding: 8px; background: rgba(0,0,0,0.3);">
+                            <h3 style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 6px; letter-spacing: 1px;">РЕГИСТРАЦИЯ В БАЗЕ ДАННЫХ</h3>
+                            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                                <input type="text" id="player-name" placeholder="ИМЯ ОПЕРАТОРА" maxlength="12" style="background: rgba(10, 8, 20, 0.85); border: 1px solid var(--neon-cyan); color: #fff; font-family: var(--font-mono); padding: 6px 10px; font-size: 0.8rem; text-align: center; text-transform: uppercase; width: 180px; outline: none;" />
+                                <button id="submit-score-btn" class="shop-item-btn">ЗАПИСАТЬ</button>
+                            </div>
+                        </div>
+
+                        <!-- Контракт дня -->
+                        <div class="menu-box" style="border: 1px solid var(--panel-border); padding: 8px; background: rgba(0,0,0,0.3); text-align: left; margin-bottom: 12px;">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-yellow); margin-bottom: 4px; letter-spacing: 0.5px;">КОНТРАКТ ДНЯ</h4>
+                            <div id="menu-quest-box" style="font-family: var(--font-mono); font-size: 0.8rem;">
+                                <div id="quest-desc" style="color: #fff; margin-bottom: 4px; line-height: 1.1;">Загрузка контракта...</div>
+                                <div id="quest-progress-bar" style="color: var(--neon-yellow); font-weight: bold;">[░░░░░░░░░░] 0/0</div>
+                                <div id="quest-time-left" style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">ОБНОВЛЕНИЕ ЧЕРЕЗ: --:--:--</div>
+                            </div>
+                        </div>
+
+                        <!-- Инструкции (скрыты после игры) -->
+                        <div id="menu-instructions" class="instructions" style="margin-bottom: 12px;">
+                            <h3>ИНСТРУКЦИЯ ПОДКЛЮЧЕНИЯ:</h3>
+                            <p>Перехватывайте падающие ядра данных (cyber-eggs), пока они не перегрузили систему.</p>
+                            <div class="controls-guide" style="margin-top: 4px;">
+                                <div class="control-key-group">
+                                    <span class="key-badge" style="font-size: 0.8rem;">A</span> / <span class="key-badge" style="font-size: 0.8rem;">←</span>
+                                    <span class="key-desc" style="font-size: 0.8rem;">Влево</span>
+                                </div>
+                                <div class="control-key-group">
+                                    <span class="key-badge" style="font-size: 0.8rem;">D</span> / <span class="key-badge" style="font-size: 0.8rem;">→</span>
+                                    <span class="key-desc" style="font-size: 0.8rem;">Вправо</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Содержимое вкладки: ДОСТИЖЕНИЯ -->
+                    <div id="tab-content-achievements" class="menu-tab-content">
+                        <div class="menu-box" style="border: 1px solid var(--panel-border); padding: 12px; background: rgba(0,0,0,0.3); text-align: left; margin-bottom: 12px;">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-pink); margin-bottom: 8px; letter-spacing: 0.5px;">НЕЙРО-СЕРТИФИКАТЫ (ДОСТИЖЕНИЯ)</h4>
+                            <div id="menu-achievements-list" style="font-family: var(--font-mono); font-size: 0.8rem; display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 5px;">
+                                <!-- Заполняется скриптом -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Содержимое вкладки: НАСТРОЙКИ -->
+                    <div id="tab-content-settings" class="menu-tab-content">
+                        <!-- TerraSite login -->
+                        <div class="settings-box" style="border: 1px solid var(--panel-border); padding: 10px; background: rgba(0,0,0,0.3); margin-bottom: 12px; text-align: left;">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 8px; letter-spacing: 0.5px;">СЕТЕВОЙ АККАУНТ TERRASITE</h4>
+                            <div id="terrasite-logged-out" style="display: block;">
+                                <button id="terrasite-web-login-btn" class="shop-item-btn" style="width: 100%; border-color: var(--neon-pink); background: rgba(255, 0, 127, 0.1); color: #fff; font-size: 0.85rem; padding: 8px 10px; text-shadow: 0 0 5px rgba(255, 0, 127, 0.5);">ВОЙТИ ЧЕРЕЗ TERRASITE.DEV</button>
+                            </div>
+                            
+                            <div id="terrasite-logged-in" style="display: none; text-align: center; font-family: var(--font-mono);">
+                                <div style="color: var(--neon-cyan); font-weight: bold; font-size: 0.85rem; margin-bottom: 6px;">
+                                    ПОДКЛЮЧЕН К TERRASITE: <span id="terrasite-user-display" style="color: #fff;">OPERATOR</span>
+                                </div>
+                                <button id="terrasite-logout-btn" class="shop-item-btn" style="width: 100%; border-color: var(--neon-pink); background: rgba(255, 0, 127, 0.1); color: #fff; font-size: 0.8rem; padding: 6px 8px;">ОТКЛЮЧИТЬ АККАУНТ</button>
+                            </div>
+                        </div>
+
+                        <!-- Twitch Интеграция -->
+                        <div class="twitch-integration-box" style="padding: 10px; border: 1px solid var(--panel-border); background: rgba(145, 70, 255, 0.06); text-align: left; margin-bottom: 12px;">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: #a970ff; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+                                </svg>
+                                TWITCH ИНТЕГРАЦИЯ ЧАТА
+                            </h4>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="twitch-channel" placeholder="ИМЯ КАНАЛА TWITCH" style="flex: 2; background: rgba(10, 8, 20, 0.85); border: 1px solid #a970ff; color: #fff; font-family: var(--font-mono); padding: 6px 8px; font-size: 0.8rem; outline: none;" />
+                                <button id="twitch-connect-btn" class="shop-item-btn" style="flex: 1; border-color: #a970ff; background: rgba(145, 70, 255, 0.1); color: #fff; font-size: 0.8rem; padding: 6px 8px;">ПОДКЛЮЧИТЬ</button>
+                            </div>
+                            <div id="twitch-status" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Статус: отключено</div>
+                        </div>
+
+                        <!-- Настройки отображения коллайдеров -->
+                        <div id="debug-colliders-box" class="settings-box" style="border: 1px solid var(--panel-border); padding: 10px; background: rgba(0,0,0,0.3); margin-bottom: 12px; text-align: left;">
+                            <h4 style="font-family: var(--font-cyber); font-size: 0.8rem; color: var(--neon-cyan); margin-bottom: 8px; letter-spacing: 0.5px;">РЕЖИМ ОТЛАДКИ</h4>
+                            <label style="display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: #fff; cursor: pointer;">
+                                <input type="checkbox" id="show-colliders-checkbox" style="accent-color: var(--neon-cyan); cursor: pointer;" />
+                                ПОКАЗАТЬ ВСЕ КОЛЛАЙДЕРЫ
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки действий снизу -->
+                    <div style="display: flex; gap: 10px; margin-top: 12px; width: 100%;">
+                        <button id="start-btn" class="cyber-btn" style="flex: 2;">
+                            <span id="start-btn-content" class="btn-content">ИНИЦИИРОВАТЬ СЛИЯНИЕ</span>
+                            <span class="btn-glitch-bg"></span>
+                        </button>
+                        <button id="customize-btn" class="cyber-btn" style="flex: 1.2; background: rgba(255, 0, 127, 0.15); border: 1px solid var(--neon-pink);">
+                            <span class="btn-content" style="color: var(--neon-pink); font-size: 0.8rem;">КАСТОМИЗАЦИЯ</span>
+                        </button>
+                    </div>
+                    <!-- Кнопка для запуска Daily Run -->
+                    <button id="daily-run-btn" class="cyber-btn" style="margin-top: 10px; width: 100%; display: none; background: rgba(255, 222, 0, 0.15); border: 1px solid var(--neon-yellow);">
+                        <span class="btn-content" style="color: var(--neon-yellow);">DAILY REFLEX CHALLENGE (1 ПОПЫТКА)</span>
+                        <span class="btn-glitch-bg"></span>
+                    </button>
+                    <!-- Кнопка для запуска обычной игры во время режима реплея -->
+                    <button id="replay-play-btn" class="cyber-btn" style="margin-top: 10px; width: 100%; display: none; background: rgba(0, 240, 255, 0.15); border: 1px solid var(--neon-cyan);">
+                        <span class="btn-content" style="color: var(--neon-cyan);">ИГРАТЬ (ВЫЙТИ ИЗ РЕПЛЕЯ)</span>
+                        <span class="btn-glitch-bg"></span>
+                    </button>
+                </div>
+
+                <!-- Виджет лидерборда в главном меню -->
+                <div id="menu-leaderboard-widget" class="menu-leaderboard-widget">
+                    <div class="mode-selector">
+                        <button class="tab-mode-btn active" data-mode="standard">STANDARD</button>
+                        <button class="tab-mode-btn" data-mode="daily">DAILY</button>
+                    </div>
+                    <div class="period-selector">
+                        <button class="tab-period-btn active" data-period="today">TODAY</button>
+                        <button class="tab-period-btn" data-period="week">WEEK</button>
+                        <button class="tab-period-btn" data-period="month">MONTH</button>
+                        <button class="tab-period-btn" data-period="all">ALL</button>
+                    </div>
+                    <table class="menu-leaderboard-table">
+                        <tbody id="menu-leaderboard-body">
+                            <tr><td colspan="3" style="text-align: center; padding: 10px; color: var(--text-muted);">Загрузка...</td></tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="menu-leaderboard-pb-row">
+                                <td colspan="2">PERSONAL BEST</td>
+                                <td id="menu-side-personal-best">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+              </div>
+            </div>
+
+            <div id="shop-screen" class="overlay-screen">
+                <div class="cyber-card shop-card">
+                    <h1 class="glitch" data-text="SYSTEM UPGRADE">SYSTEM UPGRADE</h1>
+                    <p class="subtitle neon-text-blue">НЕЙРОШОП УСИЛЕНИЙ</p>
+                    
+                    <div class="upgrade-points-display">
+                        ДОСТУПНО ОЧКОВ: <span id="upgrade-points-val" class="neon-text-yellow">0</span>
+                    </div>
+                    
+                    <div class="upgrades-list">
+                        <div class="upgrade-item">
+                            <div class="upgrade-details">
+                                <span class="upgrade-title">ДВИГАТЕЛЬ (СКОРОСТЬ)</span>
+                                <span class="upgrade-desc">Быстрее перемещает волка по горизонтали</span>
+                                <span id="upg-speed-lvl" class="upgrade-level-indicator">[██░░░] 1/5</span>
+                            </div>
+                            <button id="upg-speed-btn" class="shop-item-btn">УЛУЧШИТЬ</button>
+                        </div>
+                        
+                        <div class="upgrade-item">
+                            <div class="upgrade-details">
+                                <span class="upgrade-title">ПРИЕМНИК (ХИТБОКС)</span>
+                                <span class="upgrade-desc">Увеличивает область захвата падающих ядер</span>
+                                <span id="upg-hitbox-lvl" class="upgrade-level-indicator">[██░░░] 1/5</span>
+                            </div>
+                            <button id="upg-hitbox-btn" class="shop-item-btn">УЛУЧШИТЬ</button>
+                        </div>
+                        
+                        <div class="upgrade-item">
+                            <div class="upgrade-details">
+                                <span class="upgrade-title">ЯКОРЬ (ЗАМЕДЛЕНИЕ)</span>
+                                <span class="upgrade-desc">Продлевает время действия замедляющего поля</span>
+                                <span id="upg-slow-lvl" class="upgrade-level-indicator">[██░░░] 1/5</span>
+                            </div>
+                            <button id="upg-slow-btn" class="shop-item-btn">УЛУЧШИТЬ</button>
+                        </div>
+
+                        <div class="upgrade-item">
+                            <div class="upgrade-details">
+                                <span class="upgrade-title">МАТРИЦА (ЩИТЫ)</span>
+                                <span class="upgrade-desc">Увеличивает макс. целостность (жизни)</span>
+                                <span id="upg-shield-lvl" class="upgrade-level-indicator">[██░░░] 1/5</span>
+                            </div>
+                            <button id="upg-shield-btn" class="shop-item-btn">УЛУЧШИТЬ</button>
+                        </div>
+                    </div>
+
+                    <button id="next-lvl-btn" class="cyber-btn" style="margin-top: 20px;">
+                        <span class="btn-content">ЗАПУСТИТЬ СЛЕДУЮЩИЙ УРОВЕНЬ</span>
+                        <span class="btn-glitch-bg"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="customize-screen" class="overlay-screen">
+                <div class="cyber-card customize-card" style="display: flex; flex-direction: row; gap: 30px; width: 1100px; max-width: 96vw; height: 700px; max-height: 92vh; text-align: left; padding: 30px; overflow: hidden; align-items: stretch; transform: skewY(0deg); position: relative;">
+                    <!-- Left Side: Preview -->
+                    <div class="customize-preview-side" style="flex: 1.1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-right: 1px solid var(--panel-border); padding-right: 25px; position: relative; height: 100%;">
+                        <div class="preview-label" style="position: absolute; top: 10px; left: 10px; font-size: 0.8rem; color: var(--neon-pink); font-family: var(--font-mono); letter-spacing: 1px;">[ СИСТЕМА ГОЛО-ПРЕВЬЮ ]</div>
+                        <canvas id="previewCanvas" width="540" height="360" style="background: rgba(8, 6, 18, 0.4); border: 1px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.25); margin-bottom: 12px;"></canvas>
+                        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 15px;">РАЗРЕШЕНИЕ СИСТЕМЫ: 540x360 // ЧАСТОТА: 60Гц</div>
+                        
+                        <button id="exit-customize-btn" class="cyber-btn" style="width: 100%; max-width: 320px; background: rgba(255, 0, 127, 0.15); border: 1px solid var(--neon-pink); cursor: pointer;">
+                            <span class="btn-content" style="color: var(--neon-pink); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px;">ЗАКРЫТЬ</span>
+                            <span class="btn-glitch-bg"></span>
+                        </button>
+                    </div>
+                    
+                    <!-- Right Side: Selection -->
+                    <div class="customize-selection-side" style="flex: 1.3; display: flex; flex-direction: column; overflow-y: auto; padding-right: 5px; height: 100%;">
+                        <h1 class="glitch" data-text="КАСТОМИЗАЦИЯ" style="font-size: 2.2rem; margin-bottom: 5px; text-align: left; transform: none;">КАСТОМИЗАЦИЯ</h1>
+                        <p class="subtitle neon-text-pink" style="margin-bottom: 12px; font-size: 0.85rem; text-align: left;">НАСТРОЙКА ОБЛИКА ВОЛКА</p>
+                        
+                        <!-- Filters for Skins -->
+                        <div class="filter-bar" style="display: flex; gap: 8px; margin-bottom: 12px; font-family: var(--font-mono); align-items: center; flex-wrap: wrap;">
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">ФИЛЬТР:</span>
+                            <button class="tab-period-btn active" id="filter-skin-all" onclick="filterSkins('all')" style="font-size: 0.7rem; padding: 4px 10px;">ВСЕ</button>
+                            <button class="tab-period-btn" id="filter-skin-free" onclick="filterSkins('free')" style="font-size: 0.7rem; padding: 4px 10px;">БЕСПЛАТНЫЕ</button>
+                            <button class="tab-period-btn" id="filter-skin-cc300" onclick="filterSkins('cc300')" style="font-size: 0.7rem; padding: 4px 10px;">&lt; 300 CC</button>
+                            <button class="tab-period-btn" id="filter-skin-expensive" onclick="filterSkins('expensive')" style="font-size: 0.7rem; padding: 4px 10px;">ДОРОГИЕ</button>
+                        </div>
+                        
+                        <div class="customize-section">
+                            <h3 class="customize-section-title" style="color: var(--neon-cyan); font-size: 0.85rem; margin-bottom: 8px;">ОБЛИК ВОЛКА (SKINS)</h3>
+                            <div class="cosmetics-grid" id="skins-grid" style="max-height: 220px; overflow-y: auto; margin-bottom: 15px;">
+                                <!-- Динамические скины -->
+                            </div>
+                        </div>
+                        
+                        <div class="customize-section">
+                            <h3 class="customize-section-title" style="color: var(--neon-pink); font-size: 0.85rem; margin-bottom: 8px;">ЦИФРОВОЙ СЛЕД (TRAILS)</h3>
+                            <div class="cosmetics-grid" id="trails-grid" style="max-height: 180px; overflow-y: auto; margin-bottom: 15px;">
+                                <!-- Динамические следы -->
+                            </div>
+                        </div>
+
+                        <div class="credit-balance" style="margin-top: auto; padding-top: 10px; border-top: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center;">
+                            <div style="text-align: left;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">КРЕДИТЫ_ОПЕРАТОРА</div>
+                                <div class="credit-hint" style="margin-top: 1px;">(10 очков в игре = 1 CC)</div>
+                            </div>
+                            <div style="font-size: 1.1rem; color: var(--neon-yellow); font-weight: bold; text-shadow: 0 0 5px rgba(255,222,0,0.5);"><span id="cyber-credits-val">0</span> CC</div>
+                        </div>
+                        
+                        <button id="close-customize-btn" class="cyber-btn" style="margin-top: 10px; width: 100%;">
+                            <span class="btn-content" style="font-size: 0.8rem; padding: 6px 12px;">СОХРАНИТЬ НАСТРОЙКИ</span>
+                            <span class="btn-glitch-bg"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Нижняя HUD панель управления -->
+        <footer class="hud-footer">
+            <div class="hud-help-tip">
+                <span>[ESC] - ПАУЗА // РЕМ-ПАКЕТЫ ХИЛЯТ ЖИЗНИ // X2 УДВАИВАЮТ ОЧКИ</span>
+            </div>
+            
+            <div class="audio-controls" style="display: flex; align-items: center; gap: 10px;">
+                <button id="mute-btn" class="icon-btn" title="Вкл/Выкл звук">
+                    <svg id="mute-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                        <!-- Иконка включенного звука по умолчанию -->
+                        <path d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                    </svg>
+                </button>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" style="width: 70px; height: 4px; accent-color: var(--neon-cyan); cursor: pointer; outline: none; background: rgba(255, 255, 255, 0.2); border-radius: 2px;" title="Громкость музыки" />
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модалка предложения войти через TerraSite -->
+    <div id="terrasite-prompt-modal" class="overlay-screen" style="z-index: 10000; background: rgba(3, 3, 12, 0.95);">
+        <div class="cyber-card" style="max-width: 420px; text-align: center; border: 1px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.35); padding: 25px;">
+            <h2 class="glitch" data-text="СОХРАНИТЬ" style="color: var(--neon-cyan); font-size: 1.5rem; font-family: var(--font-cyber); margin-bottom: 10px;">СОХРАНИТЬ РЕЗУЛЬТАТЫ?</h2>
+            <p style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-primary); line-height: 1.4; margin-bottom: 20px; text-align: center;">
+                Вы играли как гость. Войдите в аккаунт или зарегистрируйтесь на сайте TerraSite, чтобы сохранить свои достижения, очки лидерборда и CC-кредиты!
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                <button id="modal-login-btn" class="shop-item-btn" style="border-color: var(--neon-cyan); color: var(--neon-cyan); font-size: 0.85rem; padding: 8px 12px; width: 100%;">ВОЙТИ В СЕТЬ</button>
+                <button id="modal-register-btn" class="shop-item-btn" style="border-color: var(--neon-yellow); color: var(--neon-yellow); font-size: 0.85rem; padding: 8px 12px; width: 100%;">СОЗДАТЬ АККАУНТ</button>
+                <button id="modal-close-btn" class="shop-item-btn" style="border-color: var(--text-muted); color: var(--text-muted); font-size: 0.85rem; padding: 8px 12px; width: 100%;">ПРОДОЛЖИТЬ КАК ГОСТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Загружаем основной скрипт игры -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

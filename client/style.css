@@ -1,0 +1,2014 @@
+/* Основная дизайн-система в стиле киберпанк */
+:root {
+    --bg-color: #03030c;
+    --panel-bg: rgba(10, 8, 20, 0.85);
+    --panel-border: rgba(0, 240, 255, 0.3);
+    
+    /* Неоновые цвета */
+    --neon-cyan: #00f0ff;
+    --neon-cyan-glow: rgba(0, 240, 255, 0.4);
+    --neon-pink: #ff007f;
+    --neon-pink-glow: rgba(255, 0, 127, 0.4);
+    --neon-yellow: #ffde00;
+    --neon-yellow-glow: rgba(255, 222, 0, 0.4);
+    --neon-green: #39ff14;
+    --neon-red: #ff3131;
+    --neon-red-glow: rgba(255, 49, 49, 0.4);
+    
+    /* Текстовые цвета */
+    --text-primary: #f0f3f6;
+    --text-muted: #7d8b99;
+    
+    /* Шрифты */
+    --font-cyber: 'Orbitron', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* Глобальные стили скроллбаров в киберпанк-стилистике */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(3, 3, 12, 0.8);
+    border: 1px solid rgba(0, 240, 255, 0.1);
+}
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--neon-cyan) 0%, rgba(0, 240, 255, 0.4) 100%);
+    border-radius: 3px;
+    box-shadow: 0 0 4px rgba(0, 240, 255, 0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+::-webkit-scrollbar-corner {
+    background: rgba(3, 3, 12, 0.8);
+}
+
+html, body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-cyan) rgba(3, 3, 12, 0.8);
+    overflow: hidden;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(15, 10, 30, 0.6) 0%, rgba(3, 3, 12, 1) 80%),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 100%, 100% 4px, 6px 100%;
+    color: var(--text-primary);
+    font-family: var(--font-cyber);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* Контейнер игры с фиксированными пропорциями и HUD рамкой */
+.cyber-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--panel-bg);
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+
+/* Декоративные уголки HUD */
+.hud-corner {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 3px solid transparent;
+    pointer-events: none;
+    z-index: 10;
+}
+.hud-corner.top-left {
+    top: -3px;
+    left: -3px;
+    border-top-color: var(--neon-pink);
+    border-left-color: var(--neon-pink);
+}
+.hud-corner.top-right {
+    top: -3px;
+    right: -3px;
+    border-top-color: var(--neon-pink);
+    border-right-color: var(--neon-pink);
+}
+.hud-corner.bottom-left {
+    bottom: -3px;
+    left: -3px;
+    border-bottom-color: var(--neon-pink);
+    border-left-color: var(--neon-pink);
+}
+.hud-corner.bottom-right {
+    bottom: -3px;
+    right: -3px;
+    border-bottom-color: var(--neon-pink);
+    border-right-color: var(--neon-pink);
+}
+
+/* Шапка HUD */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--panel-border);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    
+    /* Всегда виден */
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.hud-title-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hud-status {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--neon-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--neon-cyan);
+    animation: pulse 1.5s infinite;
+}
+
+/* Стилизация очков */
+.hud-score-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 1px solid var(--panel-border);
+    border-right: 1px solid var(--panel-border);
+}
+
+.score-label, .lives-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+}
+
+.score-value {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 10px var(--neon-yellow-glow);
+    font-family: var(--font-cyber);
+    letter-spacing: 4px;
+}
+
+/* Стилизация жизней (Integrity) */
+.hud-lives-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lives-indicators {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.life-node {
+    width: 28px;
+    height: 12px;
+    border: 1px solid var(--text-muted);
+    background-color: transparent;
+    transform: skewX(-20deg);
+    transition: all 0.3s ease;
+}
+
+.life-node.active {
+    background-color: var(--neon-pink);
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 8px var(--neon-pink-glow);
+}
+
+.life-node.danger {
+    background-color: var(--neon-red);
+    border-color: var(--neon-red);
+    box-shadow: 0 0 10px var(--neon-red-glow);
+    animation: blink 0.5s step-end infinite;
+}
+
+/* Игровое поле и Canvas */
+.game-viewport {
+    position: relative;
+    flex-grow: 1;
+    background-color: #050510;
+    border: 1px solid var(--panel-border);
+    overflow: hidden;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: transparent;
+}
+
+/* CRT Эффекты */
+.crt-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+    z-index: 5;
+}
+
+.scanline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 240, 255, 0.04) 50%,
+        rgba(0, 240, 255, 0.04)
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 6;
+}
+
+/* Экраны-оверлеи (Старт, Конец игры) */
+.overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(5, 4, 12, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 8;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.overlay-screen.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Карточки внутри оверлеев: внутренняя прокрутка вместо общей.
+   Селектор-потомок (а не прямой потомок), т.к. карточка меню теперь
+   обёрнута в .menu-card-wrapper, чтобы виджет лидерборда мог пристыковаться
+   к её правому краю, не задевая остальные оверлеи. */
+.overlay-screen .cyber-card {
+    max-height: calc(100% - 10px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-cyan) rgba(3, 3, 12, 0.8);
+}
+
+/* Обёртка карточки меню — существует только для того, чтобы виджет
+   лидерборда мог быть position:absolute; left:100% ИМЕННО от границ самой
+   карточки, а не всего экрана, и при этом не увеличивал/сдвигал саму
+   карточку (у absolute-элементов нет вклада в размер flow-родителя). */
+.menu-card-wrapper {
+    position: relative;
+    /* inline-flex вместо inline-block: ширина по-прежнему "сжимается" под
+       карточку (нужно для позиционирования виджета через left:100%), но
+       высота теперь ЯВНО задана (100%), а не неопределена. Карточка внутри
+       использует max-height:calc(100% - 10px) от родителя (см. правило
+       .overlay-screen .cyber-card) — при неопределённой высоте обёртки этот
+       процент трактуется как "none" (без ограничения), и карточка могла
+       вырасти выше экрана. align-items:center вертикально центрирует
+       карточку внутри обёртки, как раньше её центрировал сам flex-контейнер
+       #menu-screen. */
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    max-width: 100%;
+}
+
+.cyber-card {
+    background: linear-gradient(135deg, rgba(15, 10, 35, 0.95) 0%, rgba(5, 5, 15, 0.95) 100%);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.25);
+    padding: 25px;
+    width: 100%;
+    max-width: 550px;
+    box-sizing: border-box; /* Учитываем внутренние отступы в общей ширине */
+    text-align: center;
+    position: relative;
+    transform: skewY(-1deg);
+}
+
+.cyber-card.error {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 25px rgba(255, 0, 127, 0.25);
+}
+
+.cyber-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20px;
+    width: 60px;
+    height: 2px;
+    background: var(--neon-pink);
+}
+
+.cyber-card.error::before {
+    background: var(--neon-cyan);
+}
+
+/* Стилизация глитч заголовков */
+.glitch {
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--text-primary);
+    position: relative;
+    text-shadow: 0.05em 0 0 rgba(255, 0, 127, 0.75),
+                -0.025em -0.05em 0 rgba(0, 240, 255, 0.75),
+                0.025em 0.05em 0 rgba(255, 222, 0, 0.75);
+    animation: glitch 500ms infinite;
+}
+
+.error-text {
+    color: var(--neon-red);
+    text-shadow: 0.05em 0 0 rgba(0, 240, 255, 0.75),
+                -0.05em -0.025em 0 rgba(255, 0, 127, 0.75);
+}
+
+.subtitle {
+    font-family: var(--font-mono);
+    color: var(--neon-cyan);
+    letter-spacing: 3px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    margin-bottom: 12px;
+}
+
+.red-text {
+    color: var(--neon-pink);
+}
+
+.instructions {
+    text-align: left;
+    background-color: rgba(0,0,0,0.4);
+    border: 1px solid var(--panel-border);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.instructions h3 {
+    font-size: 0.9rem;
+    color: var(--neon-yellow);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.instructions p {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.controls-guide {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    border-top: 1px solid rgba(0, 240, 255, 0.15);
+    padding-top: 15px;
+}
+
+.control-key-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.key-badge {
+    background-color: var(--neon-cyan);
+    color: #000;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-family: var(--font-cyber);
+    box-shadow: 0 0 5px var(--neon-cyan-glow);
+}
+
+.key-desc {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+
+/* Статистика конца игры */
+.stats-summary {
+    background-color: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255, 0, 127, 0.2);
+    padding: 20px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+}
+
+.neon-text-blue {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan-glow);
+    font-weight: bold;
+}
+
+.neon-text-pink {
+    color: var(--neon-pink);
+    text-shadow: 0 0 8px var(--neon-pink-glow);
+    font-weight: bold;
+}
+
+.neon-text-yellow {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow-glow);
+    font-weight: bold;
+}
+
+/* Киберпанк Кнопки */
+.cyber-btn {
+    width: 100%;
+    height: 54px;
+    background-color: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-family: var(--font-cyber);
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    clip-path: polygon(0 0, 93% 0, 100% 30%, 100% 100%, 7% 100%, 0 70%);
+}
+
+.cyber-btn:hover {
+    background-color: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 15px var(--neon-cyan);
+}
+
+.cyber-btn.error-btn {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.cyber-btn.error-btn:hover {
+    background-color: var(--neon-pink);
+    color: #000;
+    box-shadow: 0 0 15px var(--neon-pink);
+}
+
+.btn-content {
+    position: relative;
+    z-index: 2;
+}
+
+/* Нижний футер с логами и звуком */
+.hud-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid var(--panel-border);
+    margin-top: 15px;
+    padding-top: 15px;
+}
+
+.system-logs {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 70%;
+}
+
+.log-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.audio-controls {
+    display: flex;
+    align-items: center;
+}
+
+.icon-btn {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--neon-cyan);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    border-color: var(--neon-cyan);
+    color: #000;
+    background-color: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan-glow);
+}
+
+/* Анимации */
+@keyframes pulse {
+    0% { opacity: 0.4; box-shadow: 0 0 4px var(--neon-cyan-glow); }
+    50% { opacity: 1; box-shadow: 0 0 12px var(--neon-cyan); }
+    100% { opacity: 0.4; box-shadow: 0 0 4px var(--neon-cyan-glow); }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+}
+
+@keyframes glitch {
+    0% {
+        text-shadow: 0.05em 0 0 rgba(255, 0, 127, 0.75),
+                    -0.025em -0.05em 0 rgba(0, 240, 255, 0.75),
+                    0.025em 0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    14% {
+        text-shadow: 0.05em 0 0 rgba(255, 0, 127, 0.75),
+                    -0.025em -0.05em 0 rgba(0, 240, 255, 0.75),
+                    0.025em 0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    15% {
+        text-shadow: -0.05em -0.025em 0 rgba(255, 0, 127, 0.75),
+                    0.025em 0.025em 0 rgba(0, 240, 255, 0.75),
+                    -0.05em -0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    49% {
+        text-shadow: -0.05em -0.025em 0 rgba(255, 0, 127, 0.75),
+                    0.025em 0.025em 0 rgba(0, 240, 255, 0.75),
+                    -0.05em -0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    50% {
+        text-shadow: 0.025em 0.05em 0 rgba(255, 0, 127, 0.75),
+                    0.05em 0 0 rgba(0, 240, 255, 0.75),
+                    0 -0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    99% {
+        text-shadow: 0.025em 0.05em 0 rgba(255, 0, 127, 0.75),
+                    0.05em 0 0 rgba(0, 240, 255, 0.75),
+                    0 -0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+    100% {
+        text-shadow: -0.025em 0 0 rgba(255, 0, 127, 0.75),
+                    -0.025em -0.025em 0 rgba(0, 240, 255, 0.75),
+                    -0.025em -0.05em 0 rgba(255, 222, 0, 0.75);
+    }
+}
+
+/* Анимация текста глитча для заголовка */
+.hud-glitch-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    position: relative;
+}
+
+.hud-glitch-text::before,
+.hud-glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--panel-bg);
+}
+
+.hud-glitch-text::before {
+    left: 1px;
+    text-shadow: -1px 0 var(--neon-pink);
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.hud-glitch-text::after {
+    left: -1px;
+    text-shadow: -1px 0 var(--neon-cyan);
+    clip: rect(85px, 450px, 140px, 0);
+    animation: glitch-anim2 5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip: rect(15px, 9999px, 66px, 0); }
+    100% { clip: rect(34px, 9999px, 55px, 0); }
+}
+
+@keyframes glitch-anim2 {
+    0% { clip: rect(70px, 9999px, 105px, 0); }
+    100% { clip: rect(12px, 9999px, 85px, 0); }
+}
+
+/* Стили для магазина улучшений */
+.shop-card {
+    width: 100%;
+    max-width: 620px;
+    box-sizing: border-box;
+    padding: 30px;
+}
+
+.upgrade-points-display {
+    font-family: var(--font-cyber);
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+    padding-bottom: 12px;
+}
+
+.upgrades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--panel-border);
+    padding: 15px;
+}
+
+.upgrade-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.upgrade-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.upgrade-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 2px;
+}
+
+.upgrade-title {
+    font-family: var(--font-cyber);
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+}
+
+.upgrade-desc {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.upgrade-level-indicator {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--neon-pink);
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+.shop-item-btn {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    clip-path: polygon(0 0, 85% 0, 100% 30%, 100% 100%, 15% 100%, 0 70%);
+}
+
+.shop-item-btn:hover:not(:disabled) {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 12px var(--neon-cyan);
+}
+
+.shop-item-btn:disabled {
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.4;
+    box-shadow: none;
+}
+
+/* Наложенный оверлей логов системы поверх Canvas */
+.system-logs-overlay {
+    position: absolute;
+    bottom: 110px; /* Сдвинуто вверх для мобильных кнопок */
+    left: 25px;
+    width: 320px;
+    height: 80px;
+    background: rgba(8, 6, 18, 0.75);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+    padding: 10px 12px;
+    pointer-events: none; /* Пропускаем клики мыши сквозь оверлей */
+    z-index: 7;
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    clip-path: polygon(0 0, 93% 0, 100% 25%, 100% 100%, 7% 100%, 0 75%);
+}
+
+.system-logs-overlay .system-logs {
+    max-width: 100%;
+}
+
+/* Строка подсказки в нижнем футере */
+.hud-help-tip {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 5px var(--neon-cyan-glow);
+    letter-spacing: 1px;
+    animation: blink 2s infinite ease-in-out;
+}
+
+/* Лидерборд (таблица теперь живёт внутри узкого .menu-leaderboard-widget) */
+#leaderboard-table th, #leaderboard-table td {
+    padding: 3px 4px;
+}
+#leaderboard-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+#leaderboard-table tbody tr:hover {
+    background: rgba(0, 240, 255, 0.05);
+}
+#leaderboard-table td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Наэкранные кнопки для мобильных (скрыты по умолчанию) */
+.mobile-dir-btn {
+    display: none;
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    background: rgba(10, 8, 22, 0.7);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    color: var(--neon-cyan);
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 10;
+    transition: all 0.1s ease;
+}
+
+.mobile-dir-btn:active {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 25px var(--neon-cyan);
+    transform: scale(0.9);
+}
+
+.left-dir-btn {
+    left: 25px;
+    bottom: 25px;
+}
+
+.right-dir-btn {
+    right: 25px;
+    bottom: 25px;
+}
+
+/* Оверлей для горизонтального режима (только на мобильных) */
+.orientation-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(6, 4, 18, 0.98);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.warning-card {
+    max-width: 90%;
+    padding: 30px 20px;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.2);
+}
+
+.rotate-phone-icon {
+    animation: rotateDevice 2.5s infinite ease-in-out;
+    margin-bottom: 20px;
+}
+
+@keyframes rotateDevice {
+    0% { transform: rotate(0deg); }
+    30% { transform: rotate(90deg); }
+    70% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Адаптивные медиа-запросы для мобильных */
+@media (max-width: 1024px) {
+    .mobile-dir-btn {
+        display: flex;
+    }
+}
+
+/* Форсирование горизонтального режима для мобильных телефонов и планшетов */
+@media (max-width: 1080px) and (orientation: portrait) {
+    .orientation-warning {
+        display: flex;
+    }
+}
+
+/* Оптимизация верстки оверлеев и карточек под низкие экраны (мобильные телефоны в ландшафтном режиме) */
+@media (max-height: 580px) {
+    .cyber-card {
+        padding: 15px 20px;
+        margin: 5px auto;
+    }
+    .glitch {
+        font-size: 1.8rem !important;
+        letter-spacing: 2px !important;
+    }
+    .subtitle {
+        font-size: 0.75rem !important;
+        margin-bottom: 10px !important;
+    }
+    .instructions {
+        padding: 12px !important;
+        margin-bottom: 12px !important;
+    }
+    .instructions p {
+        font-size: 0.75rem !important;
+        margin-bottom: 8px !important;
+    }
+    .controls-guide {
+        padding-top: 8px !important;
+        gap: 6px !important;
+    }
+    .control-key-group {
+        gap: 4px !important;
+    }
+    .key-badge {
+        font-size: 0.7rem !important;
+        padding: 1px 4px !important;
+    }
+    .key-desc {
+        font-size: 0.65rem !important;
+    }
+    .stats-summary {
+        padding: 12px !important;
+        margin-bottom: 12px !important;
+        gap: 8px !important;
+    }
+    .stat-row {
+        font-size: 0.85rem !important;
+    }
+    .cyber-btn {
+        height: 42px !important;
+        font-size: 0.85rem !important;
+        margin-top: 10px !important;
+    }
+    #score-submit-container {
+        margin-bottom: 12px !important;
+        padding: 8px !important;
+    }
+    #score-submit-container h3 {
+        margin-bottom: 6px !important;
+        font-size: 0.75rem !important;
+    }
+    #player-name {
+        font-size: 0.8rem !important;
+        padding: 5px 8px !important;
+        width: 150px !important;
+        height: 32px !important;
+        box-sizing: border-box !important;
+    }
+    #submit-score-btn {
+        padding: 5px 12px !important;
+        font-size: 0.7rem !important;
+        height: 32px !important;
+        box-sizing: border-box !important;
+    }
+    #leaderboard-table th, #leaderboard-table td {
+        padding: 4px 6px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    /* Оптимизация магазина (Shop) на мобильном ландшафте */
+    .shop-card {
+        padding: 15px 20px !important;
+    }
+    .upgrade-points-display {
+        font-size: 0.9rem !important;
+        margin-bottom: 10px !important;
+        padding-bottom: 8px !important;
+    }
+    .upgrades-list {
+        gap: 8px !important;
+        padding: 8px !important;
+        margin-bottom: 12px !important;
+    }
+    .upgrade-item {
+        padding-bottom: 8px !important;
+    }
+    .upgrade-title {
+        font-size: 0.8rem !important;
+    }
+    .upgrade-level-indicator {
+        font-size: 0.75rem !important;
+        margin-top: 2px !important;
+    }
+    .upgrade-desc {
+        display: none !important; /* Прячем описания, чтобы освободить критическое место по высоте */
+    }
+    .shop-item-btn {
+        padding: 6px 12px !important;
+        font-size: 0.7rem !important;
+    }
+    #next-lvl-btn {
+        margin-top: 10px !important;
+    }
+    
+    /* Корректировка высоты логов на экранах телефонов */
+    .system-logs-overlay {
+        bottom: 95px;
+        width: 250px;
+        height: 65px;
+        padding: 6px 8px;
+    }
+    .log-line {
+        font-size: 0.7rem;
+    }
+    .left-dir-btn {
+        width: 60px;
+        height: 60px;
+        left: 15px;
+        bottom: 15px;
+    }
+    .right-dir-btn {
+        width: 60px;
+        height: 60px;
+        right: 15px;
+        bottom: 15px;
+    }
+}
+
+/* --- СТИЛИ ДЛЯ НОВЫХ ФИЧ (ТАБЫ, КОСМЕТИКА, АЧИВКИ) --- */
+
+/* Вкладки лидерборда */
+.tab-mode-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+}
+.tab-mode-btn.active {
+    color: var(--neon-cyan);
+    border-bottom: 2px solid var(--neon-cyan);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+.tab-mode-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-period-btn {
+    background: transparent;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    cursor: pointer;
+    padding: 2px 8px;
+    transition: all 0.2s ease;
+}
+.tab-period-btn.active {
+    background: rgba(0, 240, 255, 0.15) !important;
+    border-color: var(--neon-cyan) !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
+}
+.tab-period-btn:hover:not(.active) {
+    border-color: var(--neon-cyan);
+    color: #fff;
+}
+
+/* Косметика и Скины */
+
+/* --- Кастомизация: расширенная карточка --- */
+.customize-card {
+    max-width: 1200px !important;
+    width: 100%;
+}
+
+.customize-preview-box {
+    margin-bottom: 14px;
+    height: 130px;
+    border: 1px solid var(--neon-pink);
+    background: rgba(8, 6, 18, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.preview-label {
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    font-size: 0.7rem;
+    color: var(--neon-pink);
+    font-family: var(--font-mono);
+    letter-spacing: 0.5px;
+}
+
+.customize-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.customize-section {
+    text-align: left;
+}
+
+.customize-section-title {
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+.credit-balance {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.credit-value {
+    color: var(--neon-yellow);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 222, 0, 0.4);
+}
+
+.credit-hint {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.cosmetics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 210px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-cyan) rgba(0, 0, 0, 0.5);
+}
+.cosmetics-grid::-webkit-scrollbar {
+    width: 5px;
+}
+.cosmetics-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.5);
+}
+.cosmetics-grid::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 2px;
+}
+
+.cosmetic-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(10, 8, 20, 0.5);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    gap: 8px;
+}
+.cosmetic-item.active {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 240, 255, 0.05);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+}
+.cosmetic-item:hover:not(.active) {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.cosmetic-details {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.cosmetic-title {
+    font-weight: bold;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cosmetic-type-badge {
+    font-size: 0.55rem;
+    font-family: var(--font-cyber);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 1px 5px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.cosmetic-action {
+    flex-shrink: 0;
+}
+
+.cosmetic-status {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+.cosmetic-buy-btn {
+    background: transparent;
+    border: 1px solid var(--neon-yellow);
+    color: var(--neon-yellow);
+    font-family: var(--font-cyber);
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.cosmetic-buy-btn:hover {
+    background: var(--neon-yellow);
+    color: #000;
+    box-shadow: 0 0 8px var(--neon-yellow);
+}
+.cosmetic-equip-btn {
+    background: transparent;
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+    font-family: var(--font-cyber);
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.cosmetic-equip-btn:hover {
+    background: var(--neon-pink);
+    color: #000;
+    box-shadow: 0 0 8px var(--neon-pink);
+}
+.cosmetic-unequip-btn {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.65rem;
+    font-weight: bold;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.cosmetic-unequip-btn:hover {
+    background: rgba(125, 139, 153, 0.3);
+    color: #fff;
+    border-color: #fff;
+}
+
+/* Всплывающие уведомления ачивок */
+.achievement-toast {
+    position: absolute;
+    top: 55px;
+    left: 25px;
+    width: 280px;
+    background: rgba(8, 6, 18, 0.95);
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+    padding: 10px 14px;
+    z-index: 1000;
+    font-family: var(--font-mono);
+    text-align: left;
+    backdrop-filter: blur(5px);
+    clip-path: polygon(0 0, 93% 0, 100% 25%, 100% 100%, 7% 100%, 0 75%);
+    animation: toast-slide-in 0.4s ease-out forwards;
+}
+.achievement-toast.hide {
+    animation: toast-slide-out 0.4s ease-in forwards;
+}
+.achievement-toast.progress-toast {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+@keyframes toast-slide-in {
+    0% { transform: translateX(-120%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+@keyframes toast-slide-out {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-120%); opacity: 0; }
+}
+
+.achievement-toast-header {
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    color: var(--neon-pink);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.achievement-toast-title {
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: bold;
+}
+.achievement-toast-desc {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+/* Тряска экрана (для Data Storm) */
+.screen-shake {
+    animation: screen-shake-anim 0.15s infinite;
+}
+@keyframes screen-shake-anim {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(2px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(2px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+/* Ачивки в списке меню */
+.achievement-menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed rgba(255,255,255,0.05);
+    padding: 2px 0;
+}
+.achievement-menu-item:last-child {
+    border-bottom: none;
+}
+.achievement-menu-name {
+    color: var(--text-primary);
+}
+.achievement-menu-name.unlocked {
+    color: var(--neon-pink);
+    text-shadow: 0 0 3px rgba(255,0,127,0.2);
+}
+.achievement-menu-status {
+    color: var(--text-muted);
+}
+.achievement-menu-status.unlocked {
+    color: var(--neon-cyan);
+}
+
+/* --- ТАБЫ В МЕНЮ И НАСТРОЙКАХ --- */
+.menu-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    clip-path: polygon(0 0, 92% 0, 100% 30%, 100% 100%, 8% 100%, 0 70%);
+}
+.menu-tab-btn.active {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    background: rgba(0, 240, 255, 0.08);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+}
+.menu-tab-content {
+    display: none;
+    width: 100%;
+}
+.menu-tab-content.active {
+    display: block;
+}
+
+/* --- СИДБАР ЛИДЕРБОРДА ВО ВРЕМЯ ИГРЫ --- */
+/* Виджет лидерборда, пристыкованный к правому краю карточки МЕНЮ (см.
+   .menu-card-wrapper) — не экрана. left:100% берёт границу именно
+   родителя-обёртки, поэтому виджет всегда вплотную примыкает к меню и не
+   сдвигает и не меняет размеры самой карточки (position:absolute элементы
+   не участвуют в размере flow-родителя). Виден только пока активен
+   #menu-screen — отдельной JS-логики показа/скрытия не требуется. */
+.menu-leaderboard-widget {
+    position: absolute;
+    width: 200px;
+    overflow-y: auto;
+    background: rgba(8, 6, 18, 0.95);
+    border: 1px solid var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    text-align: left;
+    backdrop-filter: blur(5px);
+    animation: side-panel-glow 4s infinite ease-in-out;
+    scrollbar-width: thin;
+    scrollbar-color: var(--neon-cyan) rgba(3, 3, 12, 0.8);
+    
+    /* Анимации появления */
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Лидерборд в меню (выезжает из-под карточки слева направо) */
+#menu-leaderboard-widget {
+    top: 15%;
+    left: 100%;
+    max-height: 80%;
+    z-index: 5; /* Ниже карточки, чтобы выезжать из-под нее */
+    transform: translateX(-100%);
+}
+#menu-leaderboard-widget.show {
+    opacity: 1;
+    transform: translateX(14px);
+    pointer-events: auto;
+}
+
+/* Карточка меню должна перекрывать лидерборд при выезде */
+.menu-card-wrapper .cyber-card {
+    z-index: 10;
+    position: relative;
+}
+
+/* Лидерборд в игре (выезжает из-за правой границы экрана справа налево) */
+#game-leaderboard-widget {
+    top: 50%;
+    right: -250px;
+    transform: translateY(-50%);
+    max-height: 70%;
+    z-index: 90;
+}
+#game-leaderboard-widget.show {
+    right: 20px;
+    opacity: 1;
+    pointer-events: auto;
+}
+/* На узких экранах виджету может не хватать места справа от карточки —
+   он просто уходит за пределы затемнённого оверлея и обрезается им
+   (overflow:hidden у .overlay-screen), как и раньше вело себя боковое
+   всплытие лидерборда на мобильных. */
+
+/* Анимируется только border-color (дешёвая перерисовка), а не радиус
+   размытия box-shadow — анимация blur-радиуса заставляет браузер каждый
+   кадр пересчитывать тень, что даёт просадку FPS именно в момент старта
+   игры, когда эта панель появляется. */
+@keyframes side-panel-glow {
+    0% { border-color: rgba(0, 240, 255, 0.3); }
+    50% { border-color: rgba(0, 240, 255, 0.7); }
+    100% { border-color: rgba(0, 240, 255, 0.3); }
+}
+.menu-leaderboard-widget .mode-selector {
+    display: flex;
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    gap: 6px;
+}
+.menu-leaderboard-widget .tab-mode-btn {
+    font-size: 0.7rem;
+    padding: 3px 4px;
+}
+.menu-leaderboard-widget .period-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.menu-leaderboard-widget .tab-period-btn {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+}
+.menu-leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+.menu-leaderboard-pb-row {
+    border-top: 1px dashed var(--neon-yellow);
+}
+.menu-leaderboard-pb-row td {
+    padding-top: 6px;
+    color: var(--neon-yellow);
+    font-weight: bold;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+}
+.menu-leaderboard-pb-row td:last-child {
+    text-align: right;
+    font-size: 0.8rem;
+}
+
+/* --- ПАНЕЛЬ УПРАВЛЕНИЯ РЕПЛЕЕМ --- */
+.replay-controls-panel {
+    position: absolute;
+    bottom: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(8, 6, 18, 0.9);
+    border: 1px solid var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    padding: 6px 12px;
+    z-index: 100;
+    font-family: var(--font-mono);
+}
+.replay-time-remaining {
+    color: var(--neon-cyan);
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-shadow: 0 0 5px var(--neon-cyan-glow);
+    min-width: 46px;
+    text-align: center;
+}
+.replay-speed-group {
+    display: flex;
+    gap: 4px;
+}
+.replay-speed-btn {
+    background: transparent;
+    border: 1px solid rgba(0, 240, 255, 0.25);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.replay-speed-btn.active {
+    background: rgba(0, 240, 255, 0.18);
+    border-color: var(--neon-cyan);
+    color: #fff;
+    box-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+}
+.replay-speed-btn:hover:not(.active) {
+    border-color: var(--neon-cyan);
+    color: #fff;
+}
+.replay-to-game-btn {
+    background: rgba(255, 0, 127, 0.12);
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+    font-family: var(--font-mono);
+    font-weight: bold;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.replay-to-game-btn:hover {
+    background: rgba(255, 0, 127, 0.25);
+    box-shadow: 0 0 8px rgba(255, 0, 127, 0.4);
+}
+
+/* --- ПАНЕЛЬ ИНФОРМАЦИИ О РЕПЛЕЕ (оператор + улучшения) --- */
+.replay-info-panel {
+    position: absolute;
+    left: 20px;
+    top: 90px;
+    width: 190px;
+    background: rgba(8, 6, 18, 0.95);
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+    padding: 10px 12px;
+    z-index: 100;
+    font-family: var(--font-mono);
+    text-align: left;
+    backdrop-filter: blur(5px);
+}
+.replay-info-title {
+    color: var(--neon-pink);
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    opacity: 0.85;
+}
+.replay-info-name {
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    text-shadow: 0 0 6px rgba(255, 0, 127, 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.replay-info-upgrades {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-top: 1px dashed rgba(255, 0, 127, 0.3);
+    padding-top: 6px;
+}
+.replay-upgrade-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.replay-upgrade-row span:last-child {
+    color: var(--neon-yellow);
+    font-weight: bold;
+}
+
+/* --- ТРЕКЕР ПРОГРЕССА АЧИВОК --- */
+.achievement-tracker-panel {
+    position: absolute;
+    left: 20px;
+    top: 90px;
+    width: 280px;
+    background: rgba(8, 6, 18, 0.95);
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.35);
+    padding: 10px 14px;
+    z-index: 100;
+    font-family: var(--font-mono);
+    clip-path: polygon(0 0, 93% 0, 100% 18%, 100% 100%, 7% 100%, 0 82%);
+    backdrop-filter: blur(5px);
+    text-align: left;
+    
+    /* Плавное появление */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+.achievement-tracker-panel.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.quest-tracker-panel {
+    position: absolute;
+    left: 20px;
+    top: 195px;
+    width: 280px;
+    background: rgba(8, 6, 18, 0.95);
+    border: 1px solid var(--neon-yellow);
+    box-shadow: 0 0 15px rgba(255, 222, 0, 0.35);
+    padding: 10px 14px;
+    z-index: 100;
+    font-family: var(--font-mono);
+    clip-path: polygon(0 0, 93% 0, 100% 18%, 100% 100%, 7% 100%, 0 82%);
+    backdrop-filter: blur(5px);
+    text-align: left;
+    
+    /* Плавное появление */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+.quest-tracker-panel.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.ach-tracker-title {
+    font-size: 0.8rem;
+    color: var(--neon-pink);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+.ach-tracker-name {
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: bold;
+    margin: 3px 0 6px 0;
+}
+.ach-tracker-progress-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 0, 127, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+.ach-tracker-bar {
+    height: 100%;
+    background: var(--neon-pink);
+    box-shadow: 0 0 8px var(--neon-pink);
+    transition: width 0.3s ease;
+}
+.ach-tracker-ratio {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 3px;
+}
+
+/* --- ФИКСАЦИЯ МИНИМАЛЬНОГО РАЗМЕРА ТЕКСТА 0.8rem --- */
+.cosmetic-status,
+.cosmetic-buy-btn,
+.cosmetic-equip-btn,
+.achievement-toast-desc,
+.achievement-toast-header,
+.achievement-menu-item,
+.achievement-menu-status,
+.score-label,
+.lives-label,
+.log-line,
+#quest-desc,
+#menu-quest-box,
+#twitch-status,
+.hud-status,
+#hud-season,
+.instructions p,
+.control-desc {
+    font-size: 0.8rem !important;
+}
+
+/* --- TOAST NOTIFICATIONS --- */
+#cyber-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10005;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 350px;
+    width: calc(100% - 40px);
+}
+
+.cyber-toast {
+    background: linear-gradient(135deg, rgba(10, 8, 20, 0.95) 0%, rgba(3, 3, 10, 0.95) 100%);
+    border: 1px solid var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan-glow);
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    animation: toast-slide-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.cyber-toast.toast-success {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+}
+
+.cyber-toast.toast-error {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+}
+
+.cyber-toast.toast-warning {
+    border-color: var(--neon-yellow);
+    box-shadow: 0 0 10px rgba(255, 222, 0, 0.3);
+}
+
+.cyber-toast.toast-info {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.cyber-toast-icon {
+    font-weight: bold;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.cyber-toast-content {
+    flex-grow: 1;
+    line-height: 1.3;
+}
+
+.cyber-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--neon-cyan);
+    opacity: 0.7;
+    transform-origin: left;
+    animation: toast-progress linear forwards;
+}
+
+.cyber-toast.toast-success .cyber-toast-progress { background: var(--neon-green); }
+.cyber-toast.toast-error .cyber-toast-progress { background: var(--neon-pink); }
+.cyber-toast.toast-warning .cyber-toast-progress { background: var(--neon-yellow); }
+.cyber-toast.toast-info .cyber-toast-progress { background: var(--neon-cyan); }
+
+@keyframes toast-slide-in {
+    from {
+        transform: translateX(120%) skewX(-5deg);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) skewX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes toast-slide-out {
+    from {
+        transform: translateX(0) skewX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(120%) skewX(5deg);
+        opacity: 0;
+    }
+}
+
+@keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+/* --- DYNAMIC CYBER MODAL --- */
+.cyber-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(3, 3, 12, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10010;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.cyber-modal-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.cyber-modal-card {
+    background: linear-gradient(135deg, rgba(15, 10, 35, 0.98) 0%, rgba(5, 5, 15, 0.98) 100%);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+    padding: 30px;
+    width: 90%;
+    max-width: 480px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+    transform: skewY(-1deg) scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cyber-modal-overlay.active .cyber-modal-card {
+    transform: skewY(-1deg) scale(1);
+}
+
+.cyber-modal-card.modal-error {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 30px rgba(255, 0, 127, 0.3);
+}
+
+.cyber-modal-card.modal-warning {
+    border-color: var(--neon-yellow);
+    box-shadow: 0 0 30px rgba(255, 222, 0, 0.3);
+}
+
+.cyber-modal-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 20px;
+    width: 80px;
+    height: 2px;
+    background: var(--neon-pink);
+}
+
+.cyber-modal-card.modal-error::before {
+    background: var(--neon-cyan);
+}
+
+.cyber-modal-card.modal-warning::before {
+    background: var(--neon-pink);
+}
+
+.cyber-modal-header {
+    margin-bottom: 15px;
+}
+
+.cyber-modal-title {
+    font-family: var(--font-cyber);
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+}
+
+.cyber-modal-body {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.cyber-modal-input-container {
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.cyber-modal-input {
+    background: rgba(10, 8, 20, 0.85);
+    border: 1px solid var(--neon-cyan);
+    color: #fff;
+    font-family: var(--font-mono);
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    box-shadow: inset 0 0 5px rgba(0, 240, 255, 0.1);
+}
+
+.cyber-modal-input:focus {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4), inset 0 0 5px rgba(0, 240, 255, 0.2);
+}
+
+.cyber-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cyber-modal-btn {
+    font-family: var(--font-cyber);
+    font-weight: bold;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border: 1px solid;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+    outline: none;
+}
+
+.cyber-modal-btn.btn-cyan {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 5px rgba(0, 240, 255, 0.1);
+}
+.cyber-modal-btn.btn-cyan:hover {
+    background: rgba(0, 240, 255, 0.15);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.cyber-modal-btn.btn-pink {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 5px rgba(255, 0, 127, 0.1);
+}
+.cyber-modal-btn.btn-pink:hover {
+    background: rgba(255, 0, 127, 0.15);
+    box-shadow: 0 0 12px rgba(255, 0, 127, 0.4);
+}
+
+.cyber-modal-btn.btn-yellow {
+    border-color: var(--neon-yellow);
+    color: var(--neon-yellow);
+    box-shadow: 0 0 5px rgba(255, 222, 0, 0.1);
+}
+.cyber-modal-btn.btn-yellow:hover {
+    background: rgba(255, 222, 0, 0.15);
+    box-shadow: 0 0 12px rgba(255, 222, 0, 0.4);
+}
+
+.cyber-modal-btn.btn-muted {
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+}
+.cyber-modal-btn.btn-muted:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+

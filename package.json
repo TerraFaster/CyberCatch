@@ -1,0 +1,12 @@
+{
+  "name": "cybercatch",
+  "version": "1.0.0",
+  "description": "CyberCatch - неоновая аркада про волка, ловящего кибер-ядра, с сервером на Node.js",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "ssh2": "^1.17.0"
+  }
+}
