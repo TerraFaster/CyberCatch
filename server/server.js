@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 
 const PORT = parseInt(process.argv[2]) || process.env.PORT || 7995;
+const HOST = process.env.HOST || '0.0.0.0';
 const SECRET_SALT = 'CYBER_SECRET_SALT_2026';
 
 const MIME_TYPES = {
@@ -1448,8 +1449,8 @@ const server = http.createServer((req, res) => {
 });
 
 if (require.main === module) {
-    server.listen(PORT, () => {
-        console.log(`[CyberCatch Server] Запущен на http://localhost:${PORT}/`);
+    server.listen(PORT, HOST, () => {
+        console.log(`[CyberCatch Server] Запущен на http://${HOST}:${PORT}/`);
     });
 } else {
     module.exports = { simulateGame, UPGRADES_CONFIG };
