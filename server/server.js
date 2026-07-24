@@ -134,6 +134,27 @@ async function getTerraSiteUsername(token) {
     return null;
 }
 
+function getRootDomain(req) {
+    const host = req.headers['host'] || '';
+    const hostname = host.split(':')[0];
+    if (
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname) ||
+        hostname.includes('[')
+    ) {
+        return null;
+    }
+    const parts = hostname.split('.');
+    if (parts.length <= 1) return null;
+    const last = parts[parts.length - 1];
+    const secondLast = parts[parts.length - 2];
+    if (parts.length >= 3 && last.length <= 3 && secondLast.length <= 3) {
+        return parts.slice(-3).join('.');
+    }
+    return parts.slice(-2).join('.');
+}
+
 // Вспомогательная функция для автоматического продления токенов
 async function getValidAccessToken(req, res, bodyToken) {
     const cookieHeader = req.headers['cookie'];
@@ -161,12 +182,13 @@ async function getValidAccessToken(req, res, bodyToken) {
                 
                 // Проставляем куки с флагом Domain для поддержки субдоменов
                 const host = req.headers['host'] || '';
-                const domain = host.includes('yourdomain.com') ? '; Domain=.yourdomain.com' : '';
+                const domain = getRootDomain(req);
+                const domainStr = domain ? `; Domain=.${domain}` : '';
                 const secure = host.includes('localhost') ? '' : '; Secure';
                 
                 res.setHeader('Set-Cookie', [
-                    `access_token=${newTokens.access_token}; Path=/; Max-Age=86400; SameSite=Lax${domain}${secure}`,
-                    `refresh_token=${newTokens.refresh_token}; Path=/; Max-Age=2592000; SameSite=Lax${domain}${secure}`
+                    `access_token=${newTokens.access_token}; Path=/; Max-Age=86400; SameSite=Lax${domainStr}${secure}`,
+                    `refresh_token=${newTokens.refresh_token}; Path=/; Max-Age=2592000; SameSite=Lax${domainStr}${secure}`
                 ]);
 
                 return newTokens.access_token;

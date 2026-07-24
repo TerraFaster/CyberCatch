@@ -542,7 +542,7 @@ async function init() {
     renderAchievementsList();
     toggleHUDMode(false);
 
-    // Скрываем режим отладки для прода (yourdomain.com)
+    // Скрываем режим отладки для прода
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (!isLocal) {
         const debugBox = document.getElementById('debug-colliders-box');
