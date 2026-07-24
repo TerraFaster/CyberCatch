@@ -524,6 +524,32 @@ export function logoutTerraSite() {
     state.terraSiteUser = null;
     localStorage.removeItem('terrasite_access_token');
     
+    // Clear cookies
+    const deleteCookie = (name) => {
+        // Clear host-only cookie
+        document.cookie = `${name}=; path=/; max-age=0`;
+        // Clear subdomain cookie
+        const hostname = window.location.hostname;
+        if (
+            hostname !== 'localhost' &&
+            hostname !== '127.0.0.1' &&
+            !/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)
+        ) {
+            const parts = hostname.split('.');
+            if (parts.length > 1) {
+                const last = parts[parts.length - 1];
+                const secondLast = parts[parts.length - 2];
+                let domain = parts.slice(-2).join('.');
+                if (parts.length >= 3 && last.length <= 3 && secondLast.length <= 3) {
+                    domain = parts.slice(-3).join('.');
+                }
+                document.cookie = `${name}=; path=/; max-age=0; domain=.${domain}`;
+            }
+        }
+    };
+    deleteCookie('access_token');
+    deleteCookie('refresh_token');
+    
     const loggedOutEl = document.getElementById('terrasite-logged-out');
     const loggedInEl = document.getElementById('terrasite-logged-in');
     if (loggedOutEl) loggedOutEl.style.display = 'block';
