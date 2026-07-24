@@ -134,6 +134,59 @@ async function getTerraSiteUsername(token) {
     return null;
 }
 
+// Вспомогательная функция для автоматического продления токенов
+async function getValidAccessToken(req, res, bodyToken) {
+    const cookieHeader = req.headers['cookie'];
+    let accessToken = getCookieValue(cookieHeader, 'access_token');
+    const refreshToken = getCookieValue(cookieHeader, 'refresh_token');
+
+    // 1. Если токен в куках есть, проверяем его валидность
+    if (accessToken) {
+        const username = await getTerraSiteUsername(accessToken);
+        if (username) {
+            return accessToken;
+        }
+    }
+
+    // 2. Если токен истек или отсутствует, но есть рефреш-токен, пробуем сделать ротацию токенов
+    if (refreshToken) {
+        try {
+            const refreshResponse = await fetch('http://localhost:8000/api/auth/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: refreshToken })
+            });
+            if (refreshResponse.status === 200) {
+                const newTokens = await refreshResponse.json();
+                
+                // Проставляем куки с флагом Domain для поддержки субдоменов
+                const host = req.headers['host'] || '';
+                const domain = host.includes('yourdomain.com') ? '; Domain=.yourdomain.com' : '';
+                const secure = host.includes('localhost') ? '' : '; Secure';
+                
+                res.setHeader('Set-Cookie', [
+                    `access_token=${newTokens.access_token}; Path=/; Max-Age=86400; SameSite=Lax${domain}${secure}`,
+                    `refresh_token=${newTokens.refresh_token}; Path=/; Max-Age=2592000; SameSite=Lax${domain}${secure}`
+                ]);
+
+                return newTokens.access_token;
+            }
+        } catch (e) {
+            console.error('Ошибка авто-рефреша токена в wolknewalk:', e);
+        }
+    }
+
+    // 3. Fallback к токену из localStorage/body, если куки недоступны или рефреш не сработал
+    if (bodyToken) {
+        const username = await getTerraSiteUsername(bodyToken);
+        if (username) {
+            return bodyToken;
+        }
+    }
+
+    return null;
+}
+
 // Должно точно соответствовать SKINS / TRAILS из client/js/config.js
 const SKINS_METADATA = {
     none: { name: 'Original Wolf', color: '#ffffff', cost: 0, type: 'none' },
@@ -788,29 +841,29 @@ const server = http.createServer((req, res) => {
     }
 
     if (req.method === 'GET' && pathname === '/api/terrasite/users/me') {
-        let authHeader = req.headers['authorization'] || '';
-        if (!authHeader) {
-            const token = resolveToken(req);
-            if (token) {
-                authHeader = `Bearer ${token}`;
+        const bodyToken = req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].substring(7) : null;
+        getValidAccessToken(req, res, bodyToken).then(async token => {
+            if (!token) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Необходима авторизация.' }));
+                return;
             }
-        }
-        fetch('http://localhost:8000/api/users/me', {
-            method: 'GET',
-            headers: { 'Authorization': authHeader }
-        })
-        .then(async response => {
-            const resData = await response.json();
-            // Backfill access_token in JSON response body if authenticated via cookie
-            if (response.status === 200 && !req.headers['authorization']) {
-                resData.access_token = resolveToken(req);
-            }
-            res.writeHead(response.status, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(resData));
-        })
-        .catch(e => {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Ошибка подключения к TerraSite.' }));
+            
+            fetch('http://localhost:8000/api/users/me', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(async response => {
+                const resData = await response.json();
+                // Backfill access_token in JSON response body so client updates its state
+                resData.access_token = token;
+                res.writeHead(response.status, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(resData));
+            })
+            .catch(e => {
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Ошибка подключения к TerraSite.' }));
+            });
         });
         return;
     }
@@ -825,7 +878,7 @@ const server = http.createServer((req, res) => {
                 const { token, deviceId, itemType, itemId } = data;
                 
                 let finalName = null;
-                const resolvedToken = resolveToken(req, token);
+                const resolvedToken = await getValidAccessToken(req, res, token);
                 if (resolvedToken) {
                     finalName = await getTerraSiteUsername(resolvedToken);
                 }
@@ -905,7 +958,7 @@ const server = http.createServer((req, res) => {
                 const { token, deviceId, selectedSkin, selectedTrail } = data;
                 
                 let finalName = null;
-                const resolvedToken = resolveToken(req, token);
+                const resolvedToken = await getValidAccessToken(req, res, token);
                 if (resolvedToken) {
                     finalName = await getTerraSiteUsername(resolvedToken);
                 }
@@ -936,35 +989,36 @@ const server = http.createServer((req, res) => {
 
     if (req.method === 'GET' && pathname === '/api/user/load') {
         const rawToken = parsedUrl.searchParams.get('token') || '';
-        const resolvedToken = resolveToken(req, rawToken);
-        const deviceId = parsedUrl.searchParams.get('deviceId') || '';
+        getValidAccessToken(req, res, rawToken).then(resolvedToken => {
+            const deviceId = parsedUrl.searchParams.get('deviceId') || '';
 
-        const respondWithProfile = (profileId) => {
-            const { profiles, profile } = getOrCreateProfile(profileId);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ username: profileId, profile }));
-        };
+            const respondWithProfile = (profileId) => {
+                const { profiles, profile } = getOrCreateProfile(profileId);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ username: profileId, profile }));
+            };
 
-        if (resolvedToken) {
-            getTerraSiteUsername(resolvedToken).then(username => {
-                if (username) {
-                    respondWithProfile(username);
-                } else if (deviceId) {
-                    respondWithProfile(`guest_${deviceId}`);
-                } else {
-                    res.writeHead(401, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Неавторизованный запрос.' }));
-                }
-            }).catch(e => {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Внутренняя ошибка сервера.' }));
-            });
-        } else if (deviceId) {
-            respondWithProfile(`guest_${deviceId}`);
-        } else {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Укажите token или deviceId.' }));
-        }
+            if (resolvedToken) {
+                getTerraSiteUsername(resolvedToken).then(username => {
+                    if (username) {
+                        respondWithProfile(username);
+                    } else if (deviceId) {
+                        respondWithProfile(`guest_${deviceId}`);
+                    } else {
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Неавторизованный запрос.' }));
+                    }
+                }).catch(e => {
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: 'Внутренняя ошибка сервера.' }));
+                });
+            } else if (deviceId) {
+                respondWithProfile(`guest_${deviceId}`);
+            } else {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Укажите token или deviceId.' }));
+            }
+        });
         return;
     }
 
@@ -1186,7 +1240,7 @@ const server = http.createServer((req, res) => {
                 
                 // Проверяем токен TerraSite
                 let finalName = name;
-                const resolvedToken = resolveToken(req, token);
+                const resolvedToken = await getValidAccessToken(req, res, token);
                 if (resolvedToken) {
                     const verifiedUsername = await getTerraSiteUsername(resolvedToken);
                     if (verifiedUsername) {
